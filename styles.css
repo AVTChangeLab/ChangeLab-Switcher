@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-900 text-white;
+}
+
+.material-icons {
+  font-size: 1.25rem;
+  margin-right: 0.5rem;
+}

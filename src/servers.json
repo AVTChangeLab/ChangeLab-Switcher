@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Web server 1",
+    "path": "path/to/server1",
+    "startCommand": "npm run serve",
+    "stopCommand": "lsof -ti:3000 | xargs kill"
+  },
+  {
+    "name": "Web server 1",
+    "path": "path/to/server2",
+    "startCommand": "npm run serve",
+    "stopCommand": "lsof -ti:3000 | xargs kill"
+  }
+]
