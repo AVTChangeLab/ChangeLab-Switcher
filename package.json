@@ -1,6 +1,6 @@
 {
   "name": "simplestart",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "main": "index.js",
   "scripts": {
     "start": "electron-forge start",
@@ -10,10 +10,15 @@
     "watch:css": "tailwindcss -i ./src/styles.css -o ./src/output.css --watch",
     "dev": "concurrently \"npm run watch:css\" \"npm run start\""
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "server",
+    "manager",
+    "electron",
+    "simplestart"
+  ],
+  "author": "Charlie Fox",
   "license": "ISC",
-  "description": "",
+  "description": "Simple server manager",
   "devDependencies": {
     "@electron-forge/cli": "^7.6.0",
     "@electron-forge/maker-deb": "^7.6.0",
