@@ -8,6 +8,7 @@ const output = document.getElementById("output");
 const serverStatus = document.getElementById("serverStatus");
 const clearLogButton = document.getElementById("clearLog");
 const addServerButton = document.getElementById("addServer");
+const removeServerButton = document.getElementById("refreshServers");
 
 window.addEventListener("DOMContentLoaded", loadServerConfigurations);
 window.addEventListener("focus", loadServerConfigurations);
@@ -53,6 +54,27 @@ ipcRenderer.on("server-added", (event, response) => {
     window.close();
   } else {
     alert("Error adding server: " + response.error);
+  }
+});
+
+removeServerButton.addEventListener("click", () => {
+  const serverName = serverSelect.value;
+  if (!serverName) {
+    alert("Please select a server to delete");
+    return;
+  }
+  
+  if (confirm(`Are you sure you want to delete "${serverName} from the list?"`)) {
+    ipcRenderer.send("delete-server", serverName);
+  }
+});
+
+ipcRenderer.on("delete-server-response", (event, response) => {
+  if (response.success) {
+    alert("Server deleted from the list successfully");
+    loadServerConfigurations();
+  } else {
+    alert("Error deleting server: " + response.error);
   }
 });
 
