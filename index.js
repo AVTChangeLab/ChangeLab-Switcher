@@ -81,15 +81,12 @@ ipcMain.on("add-server", () => {
 
 ipcMain.on("addServerSubmit", async (event, serverData) => {
     try {
-        // Read existing servers from the correct path
         if (fs.existsSync(configPath)) {
             servers = JSON.parse(fs.readFileSync(configPath, "utf8"));
         }
 
-        // Add new server
         servers.push(serverData);
 
-        // Write to the config file
         fs.writeFileSync(configPath, JSON.stringify(servers, null, 2), "utf8");
 
         event.reply('server-added', { success: true });
@@ -99,15 +96,6 @@ ipcMain.on("addServerSubmit", async (event, serverData) => {
 });
 
 let activeProcess = null;
-
-
-ipcMain.on("addServerSubmit", (event, serverName, serverPath, serverPort) => {
-  servers.push({ name: serverName, path: serverPath, port: serverPort, startCommand: `node ${serverPath}/server.js`, stopCommand: `kill -9 $(lsof -t -i:${serverPort})` });
-  fs.writeFileSync(configPath, JSON.stringify(servers, null, 2), "utf-8");
-  event.reply("addServerSubmit-response", "Server added successfully.");
-  
-  
-});
 
 ipcMain.on("start-server", (event, serverName) => {
   const server = servers.find((s) => s.name === serverName);
@@ -172,6 +160,23 @@ ipcMain.on("stop-server", (event, serverName) => {
   stopProcess.on('close', (code) => {
     event.reply("server-output", `Server stopped with code ${code}`);
   });
+});
+
+ipcMain.on("delete-server", (event, serverName) => {
+  try {
+    const serverIndex = servers.findIndex((s) => s.name === serverName);
+    if (serverIndex === -1) {
+      event.reply("delete-server-response", { success: false, error: "Server not found" });
+      return;
+    }
+    
+    servers.splice(serverIndex, 1);
+    
+    fs.writeFileSync(configPath, JSON.stringify(servers, null, 2), "utf-8");
+    event.reply("delete-server-response", { success: true });
+  } catch (error) {
+    event.reply("delete-server-response", { success: false, error: error.message });
+  }
 });
 
 app.whenReady().then(createWindow);

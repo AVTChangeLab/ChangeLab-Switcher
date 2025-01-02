@@ -7,8 +7,9 @@ addServerSubmit.addEventListener("click", () => {
     const serverName = document.getElementById("serverName").value;
     const serverPath = document.getElementById("serverDirectory").value;
     const serverPort = document.getElementById("serverPort").value;
+    const startCommand = document.getElementById("startCommand").value;
 
-    if (!serverName || !serverPath || !serverPort) {
+    if (!serverName || !serverPath || !serverPort || !startCommand) {
         alert('Please fill in all fields');
         return;
     }
@@ -17,7 +18,7 @@ addServerSubmit.addEventListener("click", () => {
         name: serverName,
         path: serverPath,
         port: serverPort,
-        startCommand: `node ${serverPath}/server.js`,
+        startCommand: startCommand,
         stopCommand: `kill -9 $(lsof -t -i:${serverPort})`
     };
 
