@@ -6,7 +6,9 @@
     "start": "electron-forge start",
     "test": "echo \"Error: no test specified\" && exit 1",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "watch:css": "tailwindcss -i ./src/styles.css -o ./src/output.css --watch",
+    "dev": "concurrently \"npm run watch:css\" \"npm run start\""
   },
   "keywords": [],
   "author": "",
@@ -22,8 +24,11 @@
     "@electron-forge/plugin-fuses": "^7.6.0",
     "@electron/fuses": "^1.8.0",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
     "electron": "^33.2.1",
+    "electron-reloader": "^1.2.3",
     "postcss": "^8.4.49",
+    "postcss-loader": "^8.1.1",
     "tailwindcss": "^3.4.17"
   },
   "dependencies": {
@@ -32,6 +37,5 @@
   "files": [
     "src",
     "src/servers.json"
-  ] 
-  
+  ]
 }

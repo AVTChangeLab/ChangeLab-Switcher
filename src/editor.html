@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit Servers Configuration</title>
-  <link rel="stylesheet" href="./styles.css">
+  <title>Edit server config</title>
+  <link rel="stylesheet" href="./output.css" type="text/css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-  <div class="w-full max-w-md p-4 bg-white rounded shadow-md">
-    <h1 class="text-3xl font-bold text-center mb-4">Edit Servers Configuration</h1>
-    <textarea id="jsonEditor" class="border p-2 rounded w-full h-64 mb-4"></textarea>
-    <div class="flex justify-between">
-      <button id="saveConfig" class="bg-blue-500 text-white px-4 py-2 rounded">Save</button>
-      <button id="cancelEdit" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+<body class="w-full h-full flex flex-col items-center ">
+  <h1 class="text-2xl text-center mb-4 text-white">Edit server config</h1>
+
+  <div class="w-full h-full flex flex-col items-center gap-4">
+    <textarea id="jsonEditor" class="w-4/5 justify-center h-96 text-black"></textarea>
+    <div>
+      <button id="saveConfig" class="bg-blue-500 text-white px-4 py-2 rounded">Save config</button>
     </div>
   </div>
   <script src="./editor.js"></script>

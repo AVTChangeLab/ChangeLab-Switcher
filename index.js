@@ -1,9 +1,20 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
-const { execFile } = require("child_process");
+const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
+const { ipcRenderer } = require('electron')
 let servers = [];
 const configPath = path.join(app.getPath("userData"), "servers.json");
+let isServerRunning = false;
+
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    require('electron-reloader')(module, {
+      debug: true,
+      watchRenderer: true
+    });
+  } catch (_) { console.log('Error'); }
+}
 
 if (fs.existsSync(configPath)) {
   servers = JSON.parse(fs.readFileSync(configPath, "utf-8"));
@@ -17,8 +28,8 @@ if (fs.existsSync(configPath)) {
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 500,
+    height: 700,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -46,7 +57,7 @@ ipcMain.on("save-servers", (event, updatedConfig) => {
 ipcMain.on("edit-config", () => {
   const editorWindow = new BrowserWindow({
     width: 600,
-    height: 400,
+    height: 700,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -56,7 +67,48 @@ ipcMain.on("edit-config", () => {
   editorWindow.loadFile(path.join(__dirname, "src/editor.html"));
 });
 
-// start server
+ipcMain.on("add-server", () => {
+  const newWindow = new BrowserWindow({
+    width: 600,
+    height: 400,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
+  newWindow.loadFile(path.join(__dirname, "src/new.html"));
+});
+
+ipcMain.on("addServerSubmit", async (event, serverData) => {
+    try {
+        // Read existing servers from the correct path
+        if (fs.existsSync(configPath)) {
+            servers = JSON.parse(fs.readFileSync(configPath, "utf8"));
+        }
+
+        // Add new server
+        servers.push(serverData);
+
+        // Write to the config file
+        fs.writeFileSync(configPath, JSON.stringify(servers, null, 2), "utf8");
+
+        event.reply('server-added', { success: true });
+    } catch (error) {
+        event.reply('server-added', { success: false, error: error.message });
+    }
+});
+
+let activeProcess = null;
+
+
+ipcMain.on("addServerSubmit", (event, serverName, serverPath, serverPort) => {
+  servers.push({ name: serverName, path: serverPath, port: serverPort, startCommand: `node ${serverPath}/server.js`, stopCommand: `kill -9 $(lsof -t -i:${serverPort})` });
+  fs.writeFileSync(configPath, JSON.stringify(servers, null, 2), "utf-8");
+  event.reply("addServerSubmit-response", "Server added successfully.");
+  
+  
+});
+
 ipcMain.on("start-server", (event, serverName) => {
   const server = servers.find((s) => s.name === serverName);
   if (!server) {
@@ -69,30 +121,56 @@ ipcMain.on("start-server", (event, serverName) => {
   });
 
   const serverPath = server.path;
+  const [command, ...args] = server.startCommand.split(" ");
+  
+  activeProcess = spawn(command, args, { 
+    cwd: serverPath, 
+    env, 
+    shell: true 
+  });
 
-  execFile(server.startCommand, { cwd: serverPath, env, shell: true }, (error, stdout, stderr) => {
-    if (error) {
-      event.reply("server-output", `Error: ${stderr || error.message}`);
-      return;
-    }
-    event.reply("server-output", stdout || `Server "${serverName}" started successfully.`);
+  isServerRunning = true;
+  event.reply("server-state-changed", isServerRunning);
+
+  activeProcess.stdout.on('data', (data) => {
+    event.reply("server-output", data.toString());
+  });
+
+  activeProcess.stderr.on('data', (data) => {
+    event.reply("server-output", data.toString());
+  });
+
+  activeProcess.on('error', (error) => {
+    event.reply("server-output", `Error: ${error.message}`);
+  });
+
+  activeProcess.on('close', (code) => {
+    event.reply("server-output", `Process exited with code ${code}`);
+    activeProcess = null;
+    isServerRunning = false;
+    event.reply("server-state-changed", isServerRunning);
   });
 });
 
-// stop server
 ipcMain.on("stop-server", (event, serverName) => {
+  if (activeProcess) {
+    activeProcess.kill();
+    activeProcess = null;
+    isServerRunning = false;
+    event.reply("server-state-changed", isServerRunning);
+  }
+  
   const server = servers.find((s) => s.name === serverName);
   if (!server) {
     event.reply("server-output", `Error: Server "${serverName}" not found.`);
     return;
   }
 
-  execFile(server.stopCommand, { shell: true }, (error, stdout, stderr) => {
-    if (error) {
-      event.reply("server-output", `Error: ${stderr || error.message}`);
-      return;
-    }
-    event.reply("server-output", stdout || "Server stopped successfully.");
+  const [command, ...args] = server.stopCommand.split(" ");
+  const stopProcess = spawn(command, args, { shell: true });
+
+  stopProcess.on('close', (code) => {
+    event.reply("server-output", `Server stopped with code ${code}`);
   });
 });
 
