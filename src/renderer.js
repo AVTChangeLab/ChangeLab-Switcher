@@ -102,8 +102,6 @@ function updateButtonStates(isRunning) {
   } else {
     startServerBtn.disabled = false;
     startServerBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-    stopServerBtn.disabled = true;
-    stopServerBtn.classList.add('opacity-50', 'cursor-not-allowed');
     serverStatus.textContent = "Server is offline";
   }
 }
